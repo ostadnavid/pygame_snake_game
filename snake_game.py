@@ -1,10 +1,12 @@
 import pygame, sys, time
 import numpy as np
 
-w, h = 990, 510
-fps = 20
-step = 10 # this makes the objects bigger
+w, h = 720, 480
+fps = 120
+step = 30 # this makes the objects bigger
 initial_snake_length = 3
+vision_size = 5
+delay = .1
 
 if w % step != 0 or h % step != 0:
   print(f'increase/decrease the width by {w % step} and height by {h % step}')
@@ -15,6 +17,16 @@ ranking_text = ' High Score: {}  |  Score: {} '
 
 x_range = np.arange(0, w, step).tolist()
 y_range = np.arange(0, h, step).tolist()
+base_image = np.zeros((len(y_range), len(x_range)))
+
+for n in range(vision_size//2):
+  base_image = np.append(base_image, [[-1] * len(x_range)], axis=0)
+  base_image = np.insert(base_image, 0, [[-1] * len(x_range)], axis=0)
+
+for n in range(vision_size//2):
+  base_image = np.insert(base_image, 0, [-1] * len(base_image[:,-1]), axis=1)
+  base_image = np.append(base_image,np.array([[-1] * len(base_image[:,-1])]).T, axis=1)
+
 pygame.init()
 
 screen = pygame.display.set_mode((w, h))
@@ -26,7 +38,6 @@ colors = ['#030712', '#f8fafc', '#ef4444']
 rank_surface = font.render(ranking_text.format(0, 0), True, colors[0], colors[1]).convert_alpha()
 rank_surface_position = ((w - rank_surface.get_size()[0])/2, 0)
 
-print(len(x_range), len(y_range))
 # snake starts from center
 snake_pos = [x_range[len(x_range)//2], y_range[len(y_range)//2]]
 snake_body = [(snake_pos[0]-(n*step), snake_pos[1]) for n in range(initial_snake_length)]
@@ -54,7 +65,37 @@ def game_over():
 
   screen.blit(red_surface, rank_surface_position)
   pygame.display.update()
-  time.sleep(1)
+  time.sleep(delay)
+
+def get_image():
+  global vision_size
+  image = base_image.copy()
+
+  for snake_body_cord in snake_body:
+    image[x_range.index(x_range[snake_body_cord[1]//step])+vision_size//2, x_range.index(x_range[snake_body_cord[0]//step])+vision_size//2] = 2
+
+  snake_head_x = x_range.index(x_range[snake_pos[0]//step]) + vision_size//2
+  snake_head_y = y_range.index(x_range[snake_pos[1]//step]) + vision_size//2
+  image[snake_head_y, snake_head_x] = 1
+
+  food_x = x_range.index(x_range[food_pos[0]//step]) + vision_size//2
+  food_y = x_range.index(x_range[food_pos[1]//step]) + vision_size//2
+
+  image[food_y, food_x] = 3
+
+  n = vision_size
+
+  for i in range(n//2, image.shape[0] - n//2):
+    for j in range(n//2, image.shape[1] - n//2):
+      if image[i, j] == 1:
+        window = image[i-n//2:i+n//2+1, j-n//2:j+n//2+1]
+  return window, snake_head_x, snake_head_y, food_x, food_y
+
+def get_state():
+  vision, snake_head_x, snake_head_y, food_x, food_y = get_image()
+  snake_length = len(snake_body) + 1
+
+  return vision, snake_head_x, snake_head_y, food_x, food_y, snake_length
 
 def check_food_pos():
   global snake_body, food_pos
@@ -63,7 +104,8 @@ def check_food_pos():
               for cord in snake_body])
 
 while True:
-  # print(np.random.randint(0, len(y_range)-1))
+  # image, *_ = get_state()
+  # print(image) 
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
       pygame.quit()
@@ -81,6 +123,8 @@ while True:
       # Esc -> Create event to quit the game
       if event.key == pygame.K_ESCAPE:
         pygame.event.post(pygame.event.Event(pygame.QUIT))
+    
+  # change_to = np.random.choice(['UP','DOWN','LEFT',"RIGHT"])
 
   # Making sure the snake cannot move in the opposite direction instantaneously
   if change_to == 'UP' and direction != 'DOWN':
