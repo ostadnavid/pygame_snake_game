@@ -16,7 +16,7 @@ ranking_text = ' High Score : {} | Score : {} '
 pygame.init()
 
 screen = pygame.display.set_mode((w, h))
-pygame.display.set_caption('snake game by @ostadpold')
+pygame.display.set_caption('snake game by @ostadnavid')
 fps_controller = pygame.time.Clock()
 font = pygame.font.Font('./JetBrainsMono-Medium.ttf', round(step*.8))
 # black, white, red
