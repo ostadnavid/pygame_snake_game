@@ -1,9 +1,9 @@
 import pygame, sys, time
 import numpy as np
 
-w, h = 720, 420
-fps = 10
-step = 30 # this makes the objects bigger
+w, h = 990, 510
+fps = 20
+step = 10 # this makes the objects bigger
 initial_snake_length = 3
 
 if w % step != 0 or h % step != 0:
@@ -11,22 +11,21 @@ if w % step != 0 or h % step != 0:
   sys.exit()
 
 score, high_score = 0,0
-ranking_text = ' High Score : {} | Score : {} '
+ranking_text = ' High Score: {}  |  Score: {} '
 
+x_range = np.arange(0, w, step).tolist()
+y_range = np.arange(0, h, step).tolist()
 pygame.init()
 
 screen = pygame.display.set_mode((w, h))
 pygame.display.set_caption('snake game by @ostadnavid')
 fps_controller = pygame.time.Clock()
-font = pygame.font.Font('./JetBrainsMono-Medium.ttf', round(step*.8))
+font = pygame.font.Font('./arial.ttf', round(step*1.25) if len(x_range) > 50 else round(step*.75) if len(x_range) < 20 else step)
 # black, white, red
 colors = ['#030712', '#f8fafc', '#ef4444']
-
 rank_surface = font.render(ranking_text.format(0, 0), True, colors[0], colors[1]).convert_alpha()
 rank_surface_position = ((w - rank_surface.get_size()[0])/2, 0)
 
-x_range = np.arange(0, w, step).tolist()
-y_range = np.arange(0, h, step).tolist()
 print(len(x_range), len(y_range))
 # snake starts from center
 snake_pos = [x_range[len(x_range)//2], y_range[len(y_range)//2]]
